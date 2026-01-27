@@ -1,0 +1,16 @@
+# GeoBot
+__pycache__/
+*.py[cod]
+*.so
+.DS_Store
+*.db
+*.sqlite
+data/tracks/*
+data/media/*
+data/graphics/*
+!data/tracks/.gitkeep
+!data/media/.gitkeep
+!data/graphics/.gitkeep
+.env
+venv/
+env/

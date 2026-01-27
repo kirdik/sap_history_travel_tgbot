@@ -1,0 +1,4 @@
+aiogram>=3.0.0
+gpxpy>=1.6.0
+matplotlib>=3.7.0
+Pillow>=10.0.0
