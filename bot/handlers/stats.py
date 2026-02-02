@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
-from aiogram import Router, types, F
+
+from aiogram import Router, types
 from aiogram.filters import Command
+
 from bot.models.trip import Trip
 from config import ADMIN_ID
 
@@ -38,20 +40,30 @@ async def cmd_stats(message: types.Message):
         await message.answer(f"{title}\n\nСплавов за этот период нет.")
         return
 
-    total_distance = sum(t.distance for t in trips) / 1000
-    total_duration = sum(t.duration for t in trips)
-    avg_speed = sum(t.avg_speed for t in trips) / len(trips) if trips else 0
-    max_speed = max(t.max_speed for t in trips) if trips else 0
+        total_distance = sum(t.distance or 0 for t in trips) / 1000
 
-    text = (f"{title}\n\n"
+        total_duration = sum(t.duration or 0 for t in trips)
+
+        speeds = [t.avg_speed for t in trips if t.avg_speed is not None]
+
+        avg_speed = (sum(speeds) / len(speeds)) if speeds else 0.0
+
+        max_speeds = [t.max_speed for t in trips if t.max_speed is not None]
+
+        max_speed = max(max_speeds) if max_speeds else 0.0
+
+        text: str = (
+            f"{title}\n\n"
             f"📅 Сплавов: {len(trips)}\n"
             f"📍 Общее расстояние: {total_distance:.1f} км\n"
-            f"⏱️ Общее время: {total_duration // 3600}ч {(total_duration % 3600) // 60}м\n"
+            f"⏱️ Общее время: {total_duration // 3600}ч "
+            f"{(total_duration % 3600) // 60}м\n"
             f"⚡ Средняя скорость: {avg_speed:.1f} км/ч\n"
-            f"🚀 Максимальная скорость: {max_speed:.1f} км/ч\n\n")
+            f"🚀 Максимальная скорость: {max_speed:.1f} км/ч\n\n"
+        )
 
-    for trip in trips:
-        text += f"• {trip.trip_date}: {trip.distance / 1000:.1f} км\n"
+        for trip in trips:
+            text += f"• {trip.trip_date}: {(trip.distance or 0) / 1000:.1f} км\n"
 
     await message.answer(text)
 
@@ -62,10 +74,11 @@ async def cmd_last(message: types.Message):
         return
 
     trip = Trip.get_last()
-    
+
     if not trip:
         await message.answer("Сплавов пока нет.")
         return
 
     from bot.handlers.view import show_trip_details
+
     await show_trip_details(message, trip)

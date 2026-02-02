@@ -1,7 +1,4 @@
 import sqlite3
-from datetime import datetime
-from typing import List, Optional
-import config
 
 
 class Database:
@@ -15,7 +12,8 @@ class Database:
     def init_db(self):
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS trips (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -30,8 +28,10 @@ class Database:
                 gpx_path TEXT,
                 notes TEXT
             )
-        """)
-        cursor.execute("""
+        """
+        )
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS trip_media (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 trip_id INTEGER NOT NULL,
@@ -39,7 +39,8 @@ class Database:
                 media_type TEXT NOT NULL,
                 FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
             )
-        """)
+        """
+        )
         conn.commit()
         conn.close()
 

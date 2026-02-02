@@ -1,6 +1,6 @@
 import math
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 
 def calculate_metrics(points: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -14,30 +14,33 @@ def calculate_metrics(points: List[Dict[str, Any]]) -> Dict[str, Any]:
     elevation_gain = 0.0
 
     prev_point = points[0]
-    elevations.append(prev_point.get('elevation', 0))
+    initial_elev = prev_point.get("elevation")
+    if initial_elev is not None:
+        elevations.append(initial_elev)
 
     for i in range(1, len(points)):
         point = points[i]
 
         distance = haversine_distance(
-            prev_point['lat'], prev_point['lon'],
-            point['lat'], point['lon']
+            prev_point["lat"], prev_point["lon"], point["lat"], point["lon"]
         )
         total_distance += distance
 
-        if prev_point.get('time') and point.get('time'):
-            time_diff = (point['time'] - prev_point['time']).total_seconds()
+        if prev_point.get("time") and point.get("time"):
+            time_diff = (point["time"] - prev_point["time"]).total_seconds()
             if time_diff > 0:
                 speed = (distance / 1000) / (time_diff / 3600)
                 speeds.append(speed)
                 total_time += time_diff
 
-        elev = point.get('elevation', 0)
-        elevations.append(elev)
+        elev = point.get("elevation")
+        if elev is not None:
+            elevations.append(elev)
 
-        prev_elev = prev_point.get('elevation', 0)
-        if elev > prev_elev:
-            elevation_gain += (elev - prev_elev)
+        prev_elev = prev_point.get("elevation")
+        if elev is not None and prev_elev is not None:
+            if elev > prev_elev:
+                elevation_gain += elev - prev_elev
 
         prev_point = point
 
@@ -47,15 +50,18 @@ def calculate_metrics(points: List[Dict[str, Any]]) -> Dict[str, Any]:
     avg_speed = sum(speeds) / len(speeds) if speeds else None
     max_speed = max(speeds) if speeds else None
 
+    trip_time = points[0].get("time")
+    trip_date = trip_time.date() if trip_time else datetime.now().date()
+
     return {
-        'distance': total_distance,
-        'duration': int(total_time),
-        'avg_speed': avg_speed,
-        'max_speed': max_speed,
-        'min_elevation': min_elevation,
-        'max_elevation': max_elevation,
-        'elevation_gain': elevation_gain,
-        'trip_date': points[0].get('time').date() if points[0].get('time') else datetime.now().date()
+        "distance": total_distance,
+        "duration": int(total_time),
+        "avg_speed": avg_speed,
+        "max_speed": max_speed,
+        "min_elevation": min_elevation,
+        "max_elevation": max_elevation,
+        "elevation_gain": elevation_gain,
+        "trip_date": trip_date,
     }
 
 
@@ -65,9 +71,12 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
 
-    a = (math.sin(dlat / 2) ** 2 +
-         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
-         math.sin(dlon / 2) ** 2)
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(dlon / 2) ** 2
+    )
 
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     distance = R * c

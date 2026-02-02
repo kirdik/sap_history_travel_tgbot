@@ -1,10 +1,11 @@
-import os
-from aiogram import Router, types, F
-from aiogram.types import ContentType
-from bot.models.trip import Trip
-from bot.models.media import Media
-from config import MEDIA_DIR, ADMIN_ID
 import logging
+import os
+
+from aiogram import F, Router, types
+from aiogram.types import ContentType
+
+from bot.models.trip import Trip
+from config import ADMIN_ID, MEDIA_DIR
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -22,21 +23,21 @@ async def handle_media(message: types.Message):
 
     try:
         if message.photo:
-            media_type = 'photo'
+            media_type = "photo"
             file = await message.bot.get_file(message.photo[-1].file_id)
-            ext = '.jpg'
         else:
-            media_type = 'video'
+            media_type = "video"
             file = await message.bot.get_file(message.video.file_id)
-            ext = '.mp4'
 
-        file_name = f"trip_{last_trip.id}_{media_type}{os.path.basename(file.file_path)}"
+        file_name = (
+            f"trip_{last_trip.id}_{media_type}{os.path.basename(file.file_path)}"
+        )
         file_path = os.path.join(MEDIA_DIR, file_name)
         await message.bot.download_file(file.file_path, file_path)
 
         last_trip.add_media(file_path, media_type)
 
-        emoji = '📷' if media_type == 'photo' else '🎬'
+        emoji = "📷" if media_type == "photo" else "🎬"
         await message.answer(f"{emoji} Медиа добавлено к последнему сплаву!")
 
     except Exception as e:
