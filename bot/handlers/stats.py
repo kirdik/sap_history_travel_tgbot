@@ -37,22 +37,18 @@ async def cmd_stats(message: types.Message):
     trips = [t for t in Trip.get_all() if t.trip_date >= start_date]
 
     if not trips:
-        await message.answer(f"{title}\n\nСплавов за этот период нет.")
-        return
-
+        text = f"{title}\n\nСплавов за этот период нет."
+    else:
         total_distance = sum(t.distance or 0 for t in trips) / 1000
-
         total_duration = sum(t.duration or 0 for t in trips)
 
         speeds = [t.avg_speed for t in trips if t.avg_speed is not None]
-
         avg_speed = (sum(speeds) / len(speeds)) if speeds else 0.0
 
         max_speeds = [t.max_speed for t in trips if t.max_speed is not None]
-
         max_speed = max(max_speeds) if max_speeds else 0.0
 
-        text: str = (
+        text = (
             f"{title}\n\n"
             f"📅 Сплавов: {len(trips)}\n"
             f"📍 Общее расстояние: {total_distance:.1f} км\n"
