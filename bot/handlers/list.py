@@ -43,7 +43,8 @@ async def show_trips_page(message: types.Message, state: FSMContext, page: int):
         await message.answer("Сплавов пока нет. Отправь GPX файл для первого сплава!")
         return
 
-    text = f"📋 Ваши сплавы (стр. {page}/{total_pages}):\n\n"
+    main_text = f"📋 Ваши сплавы (стр. {page}/{total_pages}):\n\n"
+    trip_buttons = []
 
     for trip in trips:
         media_count = len(trip.get_media())
@@ -53,18 +54,16 @@ async def show_trips_page(message: types.Message, state: FSMContext, page: int):
             "🎬" if any(m.media_type == "video" for m in trip.get_media()) else ""
         )
 
-        speed_str = (
-            f"{trip.avg_speed:.1f} км/ч" if trip.avg_speed is not None else "нет данных"
-        )
-        text += (
-            f"📅 {trip.trip_date}\n"
-            f"   {(trip.distance or 0) / 1000:.1f} км | "
-            f"{(trip.duration or 0) // 3600}ч {((trip.duration or 0) % 3600) // 60}м\n"
-            f"   Скорость: {speed_str} {media_emoji}\n"
-            f"   [ID: {trip.id}]\n\n"
+        trip_buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=f"ID {trip.id} - {trip.trip_date.strftime('%d.%m.%Y')}",
+                    callback_data=f"trip_view_{trip.id}",
+                )
+            ]
         )
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=trip_buttons)
 
     nav_buttons = []
     if page > 1:
@@ -87,7 +86,7 @@ async def show_trips_page(message: types.Message, state: FSMContext, page: int):
 
     await state.update_data(current_page=page)
 
-    await message.answer(text, reply_markup=keyboard)
+    await message.answer(main_text, reply_markup=keyboard)
 
 
 @router.callback_query(F.data.startswith("trip_page_"))
