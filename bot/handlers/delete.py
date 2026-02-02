@@ -46,9 +46,9 @@ async def trip_confirm_del_callback(callback: types.CallbackQuery, state: FSMCon
         ]
     )
 
-    await callback.message.edit_text(
-        f"⚠️ Вы уверены, что хотите удалить сплав от {trip.trip_date}?\n"
-        f"Это действие нельзя отменить.",
+    await callback.message.delete()  # Удаляем исходное сообщение
+    await callback.message.answer(
+        f"Удалить сплав от {trip.trip_date}? Это действие необратимо!",
         reply_markup=keyboard,
     )
     await callback.answer()

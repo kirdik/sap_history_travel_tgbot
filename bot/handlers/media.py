@@ -43,3 +43,40 @@ async def handle_media(message: types.Message):
     except Exception as e:
         logger.error(f"Error saving media: {e}")
         await message.answer(f"Ошибка при сохранении медиа: {e}")
+
+
+@router.callback_query(F.data.startswith("trip_viewmedia_"))
+async def view_media_callback(callback: types.CallbackQuery):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("У вас нет прав для просмотра медиа.")
+        return
+
+    trip_id = int(callback.data.split("_")[2])
+    trip = Trip.get_by_id(trip_id)
+
+    if not trip:
+        await callback.answer("Сплав не найден.")
+        return
+
+    media_list = trip.get_media()
+    if not media_list:
+        await callback.answer("У этого сплава нет медиа.")
+        return
+
+    await callback.answer("Загружаю медиа...")  # Acknowledge immediately
+
+    for media_item in media_list:
+        try:
+            if media_item.media_type == "photo":
+                await callback.message.answer_photo(
+                    types.FSInputFile(media_item.file_path)
+                )
+            elif media_item.media_type == "video":
+                await callback.message.answer_video(
+                    types.FSInputFile(media_item.file_path)
+                )
+        except Exception as e:
+            logger.error(f"Error sending media {media_item.file_path}: {e}")
+            await callback.message.answer(
+                f"Ошибка при отправке медиа {media_item.file_path}: {e}"
+            )

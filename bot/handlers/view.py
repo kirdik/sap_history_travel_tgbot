@@ -48,24 +48,36 @@ async def show_trip_details(
     text_parts.append(f"\n📎 Медиа: {media_info}")
     text = "\n".join(text_parts)
 
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
+    inline_keyboard_rows = [
+        [
+            InlineKeyboardButton(
+                text="📷 Добавить медиа", callback_data=f"trip_addmedia_{trip.id}"
+            ),
+            InlineKeyboardButton(
+                text="🗑️ Удалить медиа", callback_data=f"trip_delmedia_{trip.id}"
+            ),
+        ]
+    ]
+
+    if media:  # Conditionally add the view media button
+        inline_keyboard_rows.insert(
+            0,
             [
                 InlineKeyboardButton(
-                    text="📷 Добавить медиа", callback_data=f"trip_addmedia_{trip.id}"
-                ),
-                InlineKeyboardButton(
-                    text="🗑️ Удалить медиа", callback_data=f"trip_delmedia_{trip.id}"
-                ),
+                    text="🖼️ Посмотреть медиа", callback_data=f"trip_viewmedia_{trip.id}"
+                )
             ],
-            [
-                InlineKeyboardButton(text="🔙 В список", callback_data="trip_list"),
-                InlineKeyboardButton(
-                    text="❌ Удалить сплав", callback_data=f"trip_confirmdel_{trip.id}"
-                ),
-            ],
+        )
+
+    inline_keyboard_rows.append(
+        [
+            InlineKeyboardButton(text="🔙 В список", callback_data="trip_list"),
+            InlineKeyboardButton(
+                text="❌ Удалить сплав", callback_data=f"trip_confirmdel_{trip.id}"
+            ),
         ]
     )
+    keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard_rows)
 
     graphic_path = os.path.join(GRAPHICS_DIR, f"trip_{trip.trip_date}.png")
     if os.path.exists(graphic_path):
